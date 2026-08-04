@@ -25,10 +25,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang mesa-common-dev libegl1-mesa-dev
 
-      - name: Build ordl-game (FORGE)
+      - name: Build ordl-game (FORGE library only)
         run: |
           cd ordl-game
-          make -j$(nproc)
+          make -j$(nproc) build/libforge.a
 
       - name: Build ordl-osrs
         run: |
