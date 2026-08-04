@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ordl-osrs
+        uses: actions/checkout@v4
+
+      - name: Checkout ordl-game
+        uses: actions/checkout@v4
+        with:
+          repository: ordl-winsock/ordl-game
+          path: ordl-game
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang mesa-common-dev libegl1-mesa-dev
+
+      - name: Build ordl-game (FORGE)
+        run: |
+          cd ordl-game
+          make -j$(nproc)
+
+      - name: Build ordl-osrs
+        run: |
+          export FORGE_DIR="$PWD/ordl-game"
+          make -j$(nproc) all
+
+      - name: Run unit tests
+        run: |
+          ./build/test_crypto
+          ./build/test_playerinfo
+
+      - name: Run tool tests
+        run: |
+          ./build/test_bzip2_bulk
+          ./build/test_jagex
+          ./build/test_tls
