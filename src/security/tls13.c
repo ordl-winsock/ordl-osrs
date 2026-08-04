@@ -300,7 +300,7 @@ bool gc_tls13_server_handshake(gc_tls13_server_t *srv, int fd) {
 
   fprintf(stderr,
           "[tls13] handshake start: cert=%p len=%zu has_cert=%d has_key=%d\n",
-          cert, cert_len, g_has_loaded_cert, g_has_loaded_key);
+          (const void *)cert, cert_len, g_has_loaded_cert, g_has_loaded_key);
 
   /* 1. Read ClientHello */
   uint8_t *ch_record = NULL;
