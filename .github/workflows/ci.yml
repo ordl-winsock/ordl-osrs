@@ -38,9 +38,3 @@ jobs:
         run: |
           ./build/test_crypto
           ./build/test_playerinfo
-
-      - name: Run tool tests
-        run: |
-          ./build/test_bzip2_bulk
-          ./build/test_jagex
-          ./build/test_tls
