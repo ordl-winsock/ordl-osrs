@@ -1,0 +1,61 @@
+int osrs_game_read_packet(osrs_protocol_t *proto, const uint8_t *data,
+                          size_t len, osrs_packet_t *packet, size_t *consumed) {
+  *consumed = 0;
+  if (len < 1)
+    return -1;
+
+  /* Decode the opcode without advancing ISAAC until we know the packet is
+   * fully present.  For 1-byte opcodes we can check everything before
+   * touching the cipher.  For 2-byte opcodes we pessimistically check
+   * len >= 2 first, then consume both ISAAC values since the wire format
+   * is committed once we see var1 >= 128. */
+  uint32_t isaac1 = osrs_isaac_peek(&proto->isaac_in) & 0xFF;
+  int var1 = (data[0] - (int)isaac1) & 0xFF;
+  int opcode;
+  size_t pos;
+
+  if (var1 < 128) {
+    opcode = var1;
+    pos = 1;
+  } else {
+    if (len < 2)
+      return -1;
+    /* 2-byte opcode: consume first ISAAC, then peek/consume second. */
+    (void)osrs_isaac_next(&proto->isaac_in);
+    uint32_t isaac2 = osrs_isaac_next(&proto->isaac_in) & 0xFF;
+    int var2 = (data[1] - (int)isaac2) & 0xFF;
+    opcode = ((var1 - 128) << 8) + var2;
+    pos = 2;
+  }
+
+  int size = osrs_server_packet_sizes[opcode & 0xFF];
+
+  if (size == OSRS_PKT_VAR_BYTE) {
+    if (len < pos + 1)
+      return -1;
+    size = data[pos];
+    pos += 1;
+  } else if (size == OSRS_PKT_VAR_SHORT) {
+    if (len < pos + 2)
+      return -1;
+    size = ((int)data[pos] << 8) | data[pos + 1];
+    pos += 2;
+  } else if (size < 0) {
+    return -2; /* unknown opcode */
+  }
+
+  if (size > (int)sizeof(packet->data))
+    return -2;
+  if (len < pos + (size_t)size)
+    return -1;
+
+  /* All checks passed — commit the first ISAAC value for 1-byte opcodes. */
+  if (var1 < 128)
+    (void)osrs_isaac_next(&proto->isaac_in);
+
+  osrs_packet_wrap(packet, data + pos, (size_t)size);
+  *consumed = pos + (size_t)size;
+  OSRS_TRACE(OSRS_LOG_CAT_PKT, "incoming packet opcode=%d length=%zu", opcode,
+             (size_t)size);
+  return opcode;
+}
