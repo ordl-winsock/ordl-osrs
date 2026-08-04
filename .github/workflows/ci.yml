@@ -32,8 +32,7 @@ jobs:
 
       - name: Build ordl-osrs
         run: |
-          export FORGE_DIR="$PWD/ordl-game"
-          make -j$(nproc) all
+          make FORGE_DIR="$PWD/ordl-game" -j$(nproc) all
 
       - name: Run unit tests
         run: |
