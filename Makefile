@@ -18,11 +18,14 @@ FORGE_INC := -I$(FORGE_DIR)/include
 
 LDFLAGS := -lm
 
+# Compiler-specific flags
+CLANG_FLAGS := $(shell $(CC) --version 2>/dev/null | grep -qi clang && echo -Wno-gnu-zero-variadic-macro-arguments)
+
 CFLAGS := $(CSTD) -Wall -Wextra -Wpedantic -Werror \
           -Wstrict-overflow=2 -Wformat=2 -Wshadow \
           -Wmissing-prototypes -Wmissing-declarations \
           -fno-strict-aliasing -fno-common \
-          -Iinclude $(FORGE_INC) -D_DEFAULT_SOURCE -O2 -g
+          -Iinclude $(FORGE_INC) -D_DEFAULT_SOURCE -O2 -g $(CLANG_FLAGS)
 
 # Source files
 SRC_CRYPTO := src/crc32.c src/xtea.c src/isaac.c src/bignum.c src/rsa.c

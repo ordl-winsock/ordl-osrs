@@ -1,0 +1,14 @@
+# Valgrind core dumps
+vgcore.*
+
+# Build artifacts
+build/
+*.o
+*.a
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
