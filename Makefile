@@ -61,8 +61,14 @@ TARGET_PACKET_DECODE := build/packet_decode
 TARGET_GAMEPACK_ANALYZER := build/gamepack_analyzer
 
 # Client needs FORGE (LTO required because libforge.a contains LLVM bitcode)
-CLIENT_CFLAGS := $(CFLAGS) $(FORGE_INC) -flto
-CLIENT_LDFLAGS := $(LDFLAGS) -flto -L$(FORGE_DIR)/build -lforge -lpthread -lrt -ldl
+# Set NO_LTO=1 to disable LTO (useful when toolchain versions mismatch)
+ifeq ($(NO_LTO),1)
+  CLIENT_CFLAGS := $(CFLAGS) $(FORGE_INC)
+  CLIENT_LDFLAGS := $(LDFLAGS) -L$(FORGE_DIR)/build -lforge -lpthread -lrt -ldl
+else
+  CLIENT_CFLAGS := $(CFLAGS) $(FORGE_INC) -flto
+  CLIENT_LDFLAGS := $(LDFLAGS) -flto -L$(FORGE_DIR)/build -lforge -lpthread -lrt -ldl
+endif
 
 .PHONY: all clean test dirs tools client
 

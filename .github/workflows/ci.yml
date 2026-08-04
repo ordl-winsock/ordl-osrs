@@ -28,11 +28,11 @@ jobs:
       - name: Build ordl-game (FORGE library only)
         run: |
           cd ordl-game
-          make -j$(nproc) build/libforge.a
+          make NO_LTO=1 -j$(nproc) build/libforge.a
 
       - name: Build ordl-osrs
         run: |
-          make FORGE_DIR="$PWD/ordl-game" -j$(nproc) all
+          make NO_LTO=1 FORGE_DIR="$PWD/ordl-game" -j$(nproc) all
 
       - name: Run unit tests
         run: |
